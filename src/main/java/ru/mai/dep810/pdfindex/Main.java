@@ -30,11 +30,9 @@ public class Main {
         elastic.setHostName("localhost");
         elastic.setPort(9300);
         elastic.setIndex("crystal");
-        elastic.setSettingsPath("D:/Workspace/pdf_index/src/main/resources/elasticsearch.yml");
+        elastic.setSettingsPath("./src/main/resources/elasticsearch.yml");
         elastic.initClient();
 //        elastic.initialiseIndex();
-//        elastic.addDocumentToIndex("D:\\Диплом\\PhysRevB.48.22.pdf");
-//        elastic.addDocumentToIndex("D:\\Диплом\\Molecular-dynamics-of-binary-metal-nitrides-and-ternary-oxynitrides_2009_Physica-B-Condensed-Matter (1).pdf");
         try(Stream<Path> paths = Files.walk(Paths.get(args[0]))) {
             paths.forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
