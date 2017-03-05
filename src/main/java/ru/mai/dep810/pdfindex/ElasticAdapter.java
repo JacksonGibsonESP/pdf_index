@@ -103,10 +103,12 @@ public class ElasticAdapter {
     }
 
     public void addDocumentToIndex(String path) throws Exception {
-        String fileContents = readContent(new File(path));
+        File file = new File(path);
+        String fileContents = readContent(file);
 
         IndexResponse indexResponse = client.prepareIndex(index, "article")
                 .setPipeline("attachment")
+                .setId(file.getName())
                 .setSource(jsonBuilder()
                         .startObject()
                         .field("data", fileContents)
