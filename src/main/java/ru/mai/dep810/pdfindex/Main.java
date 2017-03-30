@@ -1,8 +1,6 @@
 package ru.mai.dep810.pdfindex;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.stream.Stream;
 
 /**
@@ -17,7 +15,8 @@ PUT _ingest/pipeline/attachment
   "processors" : [
     {
       "attachment" : {
-        "field" : "data"
+        "field" : "data",
+        "indexed_chars" : "-1"
       }
     }
   ]
@@ -32,16 +31,19 @@ public class Main {
         elastic.setIndex("crystal");
         elastic.setSettingsPath("./src/main/resources/elasticsearch.yml");
         elastic.initClient();
-//        elastic.initialiseIndex();
+        elastic.initialiseIndex();
         try(Stream<Path> paths = Files.walk(Paths.get(args[0]))) {
             paths.forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
                     try {
-                        elastic.addDocumentToIndex(filePath.toString());
+                        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.pdf");
+                        if (matcher.matches(filePath)) {
+                            elastic.addDocumentToIndex(filePath.toString());
+                            System.out.println(filePath + " added");
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    System.out.println(filePath + " added");
                 }
             });
         }
