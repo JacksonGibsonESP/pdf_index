@@ -1,6 +1,13 @@
 package ru.mai.dep810.pdfindex;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.james.mime4j.dom.Entity;
+import org.apache.james.mime4j.dom.Message;
+import org.apache.james.mime4j.dom.Multipart;
+import org.apache.james.mime4j.dom.TextBody;
+import org.apache.james.mime4j.dom.field.ContentTypeField;
+import org.apache.james.mime4j.message.DefaultMessageBuilder;
+import org.apache.james.mime4j.stream.MimeConfig;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
@@ -136,5 +143,55 @@ public class ElasticAdapter {
         input.close();
 
         return Base64.encodeBase64String(output.toByteArray());
+    }
+
+    private static String parseMhtFile(File mhtFile) throws IOException {
+        MimeConfig parserConfig  = new MimeConfig();
+        parserConfig.setMaxHeaderLen(-1); // The default is a mere 10k
+        parserConfig.setMaxLineLen(-1); // The default is only 1000 characters.
+        parserConfig.setMaxHeaderCount(-1); // Disable the check for header count.
+        DefaultMessageBuilder builder = new DefaultMessageBuilder();
+        builder.setMimeEntityConfig(parserConfig);
+
+        InputStream mhtStream = new FileInputStream(mhtFile);
+        Message message = builder.parseMessage(mhtStream);
+
+        Multipart multipart = (Multipart) message.getBody();
+        StringBuilder result = new StringBuilder();
+        String charSetName = "windows-1251";
+        int ch;
+        for (Entity e : multipart.getBodyParts()){
+            if (((ContentTypeField) e.getHeader().getField("content-type")).getMimeType().equals("text/html")){
+                charSetName = ((ContentTypeField) e.getHeader().getField("content-type")).getCharset();
+                Reader reader = ((TextBody) e.getBody()).getReader();
+                do {
+                    ch = reader.read();
+                    if (ch != -1) {
+                        result.append((char) ch);
+                    }
+                } while (ch != -1);
+            }
+        }
+        return Base64.encodeBase64String(result.toString().getBytes(charSetName));
+    }
+
+    public void addMHTDocumentToIndex(String path) throws Exception {
+        File file = new File(path);
+        String fileContents = parseMhtFile(file);
+
+        IndexResponse indexResponse = client.prepareIndex(index, "article")
+                .setPipeline("attachment")
+                .setId(file.getName())
+                .setSource(jsonBuilder()
+                        .startObject()
+                        .field("data", fileContents)
+                        .field("inserted_at", new Date())
+                        .field("path", path)
+                        .endObject()
+                )
+                .execute()
+                .actionGet();
+
+        System.out.println(indexResponse);
     }
 }

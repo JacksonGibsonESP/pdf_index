@@ -41,6 +41,11 @@ public class Main {
                             elastic.addDocumentToIndex(filePath.toString());
                             System.out.println(filePath + " added");
                         }
+                        matcher = FileSystems.getDefault().getPathMatcher("glob:**.mht");
+                        if (matcher.matches(filePath)) {
+                            elastic.addMHTDocumentToIndex(filePath.toString());
+                            System.out.println(filePath + " added");
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
