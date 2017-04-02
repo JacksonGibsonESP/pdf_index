@@ -17,6 +17,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import ru.mai.dep810.pdfindex.logger.PdfIndexLogger;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -24,6 +25,7 @@ import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -36,6 +38,16 @@ public class ElasticAdapter {
     private String hostName;
     private Client client;
     private String index;
+    private Logger logger;
+
+    public ElasticAdapter() {
+        try {
+            logger = PdfIndexLogger.getLogger(ElasticAdapter.class.getName());
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     public String getSettingsPath() {
         return settingsPath;
@@ -87,10 +99,10 @@ public class ElasticAdapter {
     public void initialiseIndex() throws Exception {
         IndicesExistsResponse indicesExistsResponse = client.admin().indices().prepareExists(index).get();
         if (indicesExistsResponse.isExists()) {
-            System.out.println("Removing existing index: " + index);
+            logger.info("Removing existing index: " + index);
             DeleteIndexResponse deleteIndexResponse = client.admin().indices().prepareDelete(index).get();
             if (deleteIndexResponse.isAcknowledged()) {
-                System.out.println("Index removed: " + index);
+                logger.info("Index removed: " + index);
             }
         }
 
@@ -106,7 +118,7 @@ public class ElasticAdapter {
         if (!createIndexResponse.isAcknowledged()) {
             throw new RuntimeException("Failed to create index " + index);
         }
-        System.out.println("Index created");
+        logger.info("Index created: " + index);
     }
 
     public void addDocumentToIndex(String path) throws Exception {
@@ -126,7 +138,27 @@ public class ElasticAdapter {
                 .execute()
                 .actionGet();
 
-        System.out.println(indexResponse);
+        logger.info(indexResponse.status().toString());
+    }
+
+    public void addMHTDocumentToIndex(String path) throws Exception {
+        File file = new File(path);
+        String fileContents = readMHTContent(file);
+
+        IndexResponse indexResponse = client.prepareIndex(index, "article")
+                .setPipeline("attachment")
+                .setId(file.getName())
+                .setSource(jsonBuilder()
+                        .startObject()
+                        .field("data", fileContents)
+                        .field("inserted_at", new Date())
+                        .field("path", path)
+                        .endObject()
+                )
+                .execute()
+                .actionGet();
+
+        logger.info(indexResponse.status().toString());
     }
 
     private static String readContent(File file) throws Exception {
@@ -145,7 +177,7 @@ public class ElasticAdapter {
         return Base64.encodeBase64String(output.toByteArray());
     }
 
-    private static String parseMhtFile(File mhtFile) throws IOException {
+    private static String readMHTContent(File mhtFile) throws IOException {
         MimeConfig parserConfig  = new MimeConfig();
         parserConfig.setMaxHeaderLen(-1); // The default is a mere 10k
         parserConfig.setMaxLineLen(-1); // The default is only 1000 characters.
@@ -173,25 +205,5 @@ public class ElasticAdapter {
             }
         }
         return Base64.encodeBase64String(result.toString().getBytes(charSetName));
-    }
-
-    public void addMHTDocumentToIndex(String path) throws Exception {
-        File file = new File(path);
-        String fileContents = parseMhtFile(file);
-
-        IndexResponse indexResponse = client.prepareIndex(index, "article")
-                .setPipeline("attachment")
-                .setId(file.getName())
-                .setSource(jsonBuilder()
-                        .startObject()
-                        .field("data", fileContents)
-                        .field("inserted_at", new Date())
-                        .field("path", path)
-                        .endObject()
-                )
-                .execute()
-                .actionGet();
-
-        System.out.println(indexResponse);
     }
 }

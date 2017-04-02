@@ -1,6 +1,9 @@
 package ru.mai.dep810.pdfindex;
 
+import ru.mai.dep810.pdfindex.logger.PdfIndexLogger;
+
 import java.nio.file.*;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -8,7 +11,7 @@ import java.util.stream.Stream;
  */
 
 /*
-Install ingest attachment plugin and type this command to Kibana console beforeall:
+Install ingest attachment plugin and type this command to Kibana console before all:
 PUT _ingest/pipeline/attachment
 {
   "description" : "Extract attachment information",
@@ -23,6 +26,20 @@ PUT _ingest/pipeline/attachment
 }
 */
 
+/*
+This is the way to clean up all little htmls trash:
+POST crystal/_delete_by_query
+{
+  "query": {
+    "range" : {
+            "attachment.content_length" : {
+                "lte" : 1000
+            }
+    }
+  }
+}
+*/
+
 public class Main {
     public static void main(String[] args) throws Exception {
         ElasticAdapter elastic = new ElasticAdapter();
@@ -33,24 +50,43 @@ public class Main {
         elastic.initClient();
         elastic.initialiseIndex();
         try(Stream<Path> paths = Files.walk(Paths.get(args[0]))) {
+            Logger logger = PdfIndexLogger.getLogger(Main.class.getName());
             paths.forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
                     try {
-                        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.pdf");
-                        if (matcher.matches(filePath)) {
+                        PathMatcher pdfMatcher = FileSystems.getDefault().getPathMatcher("glob:**.pdf");
+                        PathMatcher mhtMatcher = FileSystems.getDefault().getPathMatcher("glob:**.mht");
+                        PathMatcher docMatcher = FileSystems.getDefault().getPathMatcher("glob:**.doc");
+                        PathMatcher docxMatcher = FileSystems.getDefault().getPathMatcher("glob:**.docx");
+                        PathMatcher rtfMatcher = FileSystems.getDefault().getPathMatcher("glob:**.rtf");
+                        PathMatcher htmlMatcher = FileSystems.getDefault().getPathMatcher("glob:**.html");
+                        PathMatcher htmMatcher = FileSystems.getDefault().getPathMatcher("glob:**.htm");
+                        PathMatcher odtMatcher = FileSystems.getDefault().getPathMatcher("glob:**.odt");
+                        if (pdfMatcher.matches(filePath) || docMatcher.matches(filePath)
+                                || docxMatcher.matches(filePath) || rtfMatcher.matches(filePath)
+                                || htmlMatcher.matches(filePath) || htmMatcher.matches(filePath)
+                                || odtMatcher.matches(filePath)) {
+                            logger.info("Trying to add: " + filePath);
                             elastic.addDocumentToIndex(filePath.toString());
-                            System.out.println(filePath + " added");
                         }
-                        matcher = FileSystems.getDefault().getPathMatcher("glob:**.mht");
-                        if (matcher.matches(filePath)) {
+                        else if (mhtMatcher.matches(filePath)) {
+                            logger.info("Trying to add: " + filePath);
                             elastic.addMHTDocumentToIndex(filePath.toString());
-                            System.out.println(filePath + " added");
+                        }
+                        else {
+                            logger.info("Escaped: " + filePath);
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.warning("Error: " + e);
                     }
                 }
+                else {
+                    logger.warning("Not regular file: " + filePath);
+                }
             });
+        }
+        catch (Throwable e){
+            e.printStackTrace();
         }
     }
 }
