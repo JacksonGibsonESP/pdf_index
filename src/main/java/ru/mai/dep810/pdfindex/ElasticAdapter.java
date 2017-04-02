@@ -16,6 +16,9 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkIndexByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import ru.mai.dep810.pdfindex.logger.PdfIndexLogger;
 
@@ -205,5 +208,14 @@ public class ElasticAdapter {
             }
         }
         return Base64.encodeBase64String(result.toString().getBytes(charSetName));
+    }
+
+    public void deleteTrash(){
+        BulkIndexByScrollResponse response =
+                DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
+                        .filter(QueryBuilders.rangeQuery("attachment.content_length").lte(1000))
+                        .source(index)
+                        .get();
+        logger.info(String.valueOf(response.getDeleted()) + " documents deleted");
     }
 }
