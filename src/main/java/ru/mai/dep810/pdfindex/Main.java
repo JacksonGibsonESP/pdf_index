@@ -55,7 +55,6 @@ public class Main {
                 if (Files.isRegularFile(filePath)) {
                     try {
                         PathMatcher pdfMatcher = FileSystems.getDefault().getPathMatcher("glob:**.pdf");
-                        PathMatcher mhtMatcher = FileSystems.getDefault().getPathMatcher("glob:**.mht");
                         PathMatcher docMatcher = FileSystems.getDefault().getPathMatcher("glob:**.doc");
                         PathMatcher docxMatcher = FileSystems.getDefault().getPathMatcher("glob:**.docx");
                         PathMatcher rtfMatcher = FileSystems.getDefault().getPathMatcher("glob:**.rtf");
@@ -68,12 +67,7 @@ public class Main {
                                 || odtMatcher.matches(filePath)) {
                             logger.info("Trying to add: " + filePath);
                             elastic.addDocumentToIndex(filePath.toString());
-                        }
-                        else if (mhtMatcher.matches(filePath)) {
-                            logger.info("Trying to add: " + filePath);
-                            elastic.addMHTDocumentToIndex(filePath.toString());
-                        }
-                        else {
+                        } else {
                             logger.info("Escaped: " + filePath);
                         }
                     } catch (Exception e) {
