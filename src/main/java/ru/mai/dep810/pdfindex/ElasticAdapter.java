@@ -13,7 +13,8 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.BulkIndexByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import ru.mai.dep810.pdfindex.logger.PdfIndexLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -21,7 +22,6 @@ import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.logging.Logger;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -34,16 +34,7 @@ public class ElasticAdapter {
     private String hostName;
     private Client client;
     private String index;
-    private Logger logger;
-
-    public ElasticAdapter() {
-        try {
-            logger = PdfIndexLogger.getLogger(ElasticAdapter.class.getName());
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-    }
+    private Logger logger = LoggerFactory.getLogger(ElasticAdapter.class);
 
     public String getSettingsPath() {
         return settingsPath;

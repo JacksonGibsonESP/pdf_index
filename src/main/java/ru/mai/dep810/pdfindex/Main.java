@@ -1,9 +1,9 @@
 package ru.mai.dep810.pdfindex;
 
-import ru.mai.dep810.pdfindex.logger.PdfIndexLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.*;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -42,6 +42,8 @@ POST crystal/_delete_by_query
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        Logger logger = LoggerFactory.getLogger(Main.class);
+        logger.info("Application started");
         ElasticAdapter elastic = new ElasticAdapter();
         elastic.setHostName("localhost");
         elastic.setPort(9300);
@@ -50,7 +52,6 @@ public class Main {
         elastic.initClient();
         elastic.initialiseIndex();
         try(Stream<Path> paths = Files.walk(Paths.get(args[0]))) {
-            Logger logger = PdfIndexLogger.getLogger(Main.class.getName());
             paths.forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
                     try {
@@ -71,17 +72,19 @@ public class Main {
                             logger.info("Escaped: " + filePath);
                         }
                     } catch (Exception e) {
-                        logger.warning("Error: " + e);
+                        logger.error("Error: " + e);
                     }
                 }
                 else {
-                    logger.warning("Not regular file: " + filePath);
+                    logger.info("Not regular file: " + filePath);
                 }
             });
+            elastic.deleteTrash();
+            logger.info("Application successfully finished");
         }
         catch (Throwable e){
-            e.printStackTrace();
+            logger.error(e.toString());
+            logger.info("Application interrupted");
         }
-        elastic.deleteTrash();
     }
 }
