@@ -8,9 +8,9 @@ import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRespon
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkIndexByScrollResponse;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ public class ElasticAdapter {
             Path path = FileSystems.getDefault().getPath(settingsPath);
             Settings settings = Settings.builder().loadFromPath(path).build();
             return new PreBuiltTransportClient(settings)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostName), port));
+                    .addTransportAddress(new TransportAddress(InetAddress.getByName(hostName), port));
         } catch (UnknownHostException e) {
             throw new IllegalArgumentException("Cannot connect to ElasticSearch host");
         }
@@ -145,7 +145,7 @@ public class ElasticAdapter {
     }
 
     public void deleteTrash(){
-        BulkIndexByScrollResponse response =
+        BulkByScrollResponse response =
                 DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
                         .filter(QueryBuilders.rangeQuery("attachment.content_length").lte(1000))
                         .source(index)
