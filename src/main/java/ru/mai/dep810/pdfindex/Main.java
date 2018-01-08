@@ -10,36 +10,6 @@ import java.util.stream.Stream;
  * Created by Никита on 10.12.2016.
  */
 
-/*
-Install ingest attachment plugin and type this command to Kibana console before all:
-PUT _ingest/pipeline/attachment
-{
-  "description" : "Extract attachment information",
-  "processors" : [
-    {
-      "attachment" : {
-        "field" : "data",
-        "indexed_chars" : "-1"
-      }
-    }
-  ]
-}
-*/
-
-/*
-This is the way to clean up all little htmls trash:
-POST crystal/_delete_by_query
-{
-  "query": {
-    "range" : {
-            "attachment.content_length" : {
-                "lte" : 1000
-            }
-    }
-  }
-}
-*/
-
 public class Main {
     public static void main(String[] args) throws Exception {
         Logger logger = LoggerFactory.getLogger(Main.class);

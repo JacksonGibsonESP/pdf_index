@@ -9,6 +9,7 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
@@ -100,12 +101,47 @@ public class ElasticAdapter {
     }
 
     private void createIndex() throws Exception {
-        CreateIndexRequestBuilder createIndexRequestBuilder = client.admin().indices().prepareCreate(index);
+        CreateIndexRequestBuilder createIndexRequestBuilder = client.admin().indices().prepareCreate(index)
+                .setSettings(getSettings())
+                .addMapping("article", getMapping());
         CreateIndexResponse createIndexResponse = createIndexRequestBuilder.get();
         if (!createIndexResponse.isAcknowledged()) {
             throw new RuntimeException("Failed to create index " + index);
         }
         logger.info("Index created: " + index);
+    }
+
+    private XContentBuilder getSettings() throws Exception {
+        String []filters = {"standard", "lowercase", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer", "crystal_synonyms"};
+        return jsonBuilder()
+                .startObject()
+                    .field("index.analysis.analyzer.crystal.tokenizer", "standard")
+                    .field("index.analysis.analyzer.crystal.filter", filters)
+                    .field("index.analysis.filter.crystal_synonyms.type", "synonym")
+                    .field("index.analysis.filter.crystal_synonyms.synonyms_path", "analysis/synonym.txt")
+                    .field("index.analysis.filter.english_stopwords.type", "stop")
+                    .field("index.analysis.filter.english_stopwords.stopwords", "_english_")
+                    .field("index.analysis.filter.russian_stopwords.type", "stop")
+                    .field("index.analysis.filter.russian_stopwords.stopwords", "_russian_")
+                    .field("index.analysis.filter.russian_stemmer.type", "stemmer")
+                    .field("index.analysis.filter.russian_stemmer.name", "russian")
+                    .field("index.analysis.filter.english_stemmer.type", "stemmer")
+                    .field("index.analysis.filter.english_stemmer.name", "english")
+                .endObject();
+    }
+
+    private XContentBuilder getMapping() throws Exception {
+        return jsonBuilder()
+                .startObject()
+                    .field("properties")
+                        .startObject()
+                            .field("attachment.content")
+                                .startObject()
+                                    .field("type", "text")
+                                    .field("analyzer", "crystal")
+                                .endObject()
+                        .endObject()
+                .endObject();
     }
 
     public void addDocumentToIndex(String path) throws Exception {
