@@ -11,6 +11,11 @@ PUT _ingest/pipeline/attachment
         "field" : "data",
         "indexed_chars" : "-1"
       }
+    },
+    {
+      "remove": {
+        "field": "data"
+      }
     }
   ]
 }
