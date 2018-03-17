@@ -30,19 +30,19 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  * Created by Никита on 10.12.2016.
  */
 public class ElasticAdapter {
-    private String settingsPath;
+    private String settingsResourceName;
     private int port;
     private String hostName;
     private Client client;
     private String index;
     private Logger logger = LoggerFactory.getLogger(ElasticAdapter.class);
 
-    public String getSettingsPath() {
-        return settingsPath;
+    public String getSettingsResourceName() {
+        return settingsResourceName;
     }
 
-    public void setSettingsPath(String settingsPath) {
-        this.settingsPath = settingsPath;
+    public void setSettingsResourceName(String settingsResourceName) {
+        this.settingsResourceName = settingsResourceName;
     }
 
     public int getPort() {
@@ -75,8 +75,8 @@ public class ElasticAdapter {
 
     public Client getObject() throws Exception {
         try {
-            Path path = FileSystems.getDefault().getPath(settingsPath);
-            Settings settings = Settings.builder().loadFromPath(path).build();
+            Settings settings = Settings.builder().loadFromStream(settingsResourceName,
+                    this.getClass().getResourceAsStream(settingsResourceName), true).build();
             return new PreBuiltTransportClient(settings)
                     .addTransportAddress(new TransportAddress(InetAddress.getByName(hostName), port));
         } catch (UnknownHostException e) {

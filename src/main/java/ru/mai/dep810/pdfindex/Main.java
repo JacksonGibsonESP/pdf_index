@@ -18,7 +18,7 @@ public class Main {
         elastic.setHostName("localhost");
         elastic.setPort(9300);
         elastic.setIndex("crystal");
-        elastic.setSettingsPath("./src/main/resources/elasticsearch.yml");
+        elastic.setSettingsResourceName("elasticsearch.yml");
         elastic.initClient();
         elastic.initialiseIndex();
         try(Stream<Path> paths = Files.walk(Paths.get(args[0]))) {
