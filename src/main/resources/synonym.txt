@@ -341,3 +341,14 @@ ZnCO3, Zinc carbonate, Карбонат цинка => ZnCO3, Zinc carbonate, К�
 ZnI2, Zinc iodide, Йодид цинка => ZnI2, Zinc iodide, Йодид цинка
 ZnS, Zinc sulfide, Сульфид цинка => ZnS, Zinc sulfide, Сульфид цинка
 ZnSO4, Zinc sulfate, Сульфат цинка => ZnSO4, Zinc sulfate, Сульфат цинка
+#Crystal System
+Кубическая, Cubic => Кубическая, Cubic
+Гексагональная, Hexagonal => Гексагональная, Hexagonal
+Тетрагональная, Tetragonal => Тетрагональная, Tetragonal
+Ромбическая, Orthorhombic => Ромбическая, Orthorhombic
+Моноклинная, Monoclinic => Моноклинная, Monoclinic
+Триклинная, Triclinic => Триклинная, Triclinic
+#Radius Type
+Ионный, Ionic => Ионный, Ionic
+Металлический, Metallic => Металлический, Metallic
+Ковалентный, Covalent => Ковалентный, Covalent
