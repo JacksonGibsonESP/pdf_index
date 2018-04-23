@@ -112,7 +112,7 @@ public class ElasticAdapter {
     }
 
     private XContentBuilder getSettings() throws Exception {
-        String []filters = {"standard", "lowercase", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer", "crystal_synonyms"};
+        String []filters = {"standard", "lowercase", "crystal_synonyms", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer"};
         return jsonBuilder()
                 .startObject()
                     .field("index.analysis.analyzer.crystal.tokenizer", "standard")
