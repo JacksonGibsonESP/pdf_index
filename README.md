@@ -1,6 +1,6 @@
 A simple java program to index pdf/doc/docx/rtf/htm/html/odt articles using Elasticsearch.
 
-Install ingest attachment plugin and type this command to Kibana console before all:
+Install ingest attachment plugin before all. Next pipeline configuration command is implemented:
 ```
 PUT _ingest/pipeline/attachment
 {

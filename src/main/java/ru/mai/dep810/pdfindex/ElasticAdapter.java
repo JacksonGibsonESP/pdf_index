@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Date;
 
@@ -31,6 +33,7 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 public class ElasticAdapter {
     private String settingsResourceName;
     private int port;
+    private int portREST;
     private String hostName;
     private Client client;
     private String index;
@@ -50,6 +53,14 @@ public class ElasticAdapter {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public int getPortREST() {
+        return portREST;
+    }
+
+    public void setPortREST(int portREST) {
+        this.portREST = portREST;
     }
 
     public String getHostName() {
@@ -97,6 +108,43 @@ public class ElasticAdapter {
         if (!indicesExistsResponse.isExists()) {
             createIndex();
         }
+    }
+
+    public void initialisePipeline() throws Exception {
+        URL obj = new URL("http", hostName, portREST, "/_ingest/pipeline/attachment");
+
+        XContentBuilder jsonBuilder = jsonBuilder()
+            .startObject()
+                .field("description", "Extract attachment information")
+                    .startArray("processors")
+                        .startObject()
+                            .startObject("attachment")
+                                .field("field", "data")
+                                .field( "indexed_chars", "-1")
+                            .endObject()
+                        .endObject()
+                        .startObject()
+                            .startObject("remove")
+                                .field("field", "data")
+                            .endObject()
+                        .endObject()
+                    .endArray()
+            .endObject();
+
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        con.setRequestMethod("PUT");
+        con.setDoInput(true);
+        con.setDoOutput(true);
+        con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+
+        OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream());
+        osw.write(jsonBuilder.string());
+        osw.flush();
+        osw.close();
+
+        logger.info(String.format("Pipeline update response code: %d, response message: %s", con.getResponseCode(), con.getResponseMessage()));
+        con.disconnect();
     }
 
     private void createIndex() throws Exception {

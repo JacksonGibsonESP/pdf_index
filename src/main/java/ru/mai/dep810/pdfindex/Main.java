@@ -17,9 +17,11 @@ public class Main {
         ElasticAdapter elastic = new ElasticAdapter();
         elastic.setHostName("localhost");
         elastic.setPort(9300);
+        elastic.setPortREST(9200);
         elastic.setIndex("crystal");
         elastic.setSettingsResourceName("elasticsearch.yml");
         elastic.initClient();
+        elastic.initialisePipeline();
         elastic.initialiseIndex();
         try(Stream<Path> paths = Files.walk(Paths.get(args[0]))) {
             paths.forEach(filePath -> {
