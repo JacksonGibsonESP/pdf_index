@@ -1,6 +1,7 @@
 package ru.mai.dep810.pdfindex;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
@@ -141,6 +142,12 @@ public class ElasticAdapter {
                                     .field("analyzer", "crystal")
                                     .field("search_analyzer", "crystal")
                                 .endObject()
+                            .field("filename")
+                                .startObject()
+                                    .field("type", "text")
+                                    .field("analyzer", "crystal")
+                                    .field("search_analyzer", "crystal")
+                                .endObject()
                         .endObject()
                 .endObject();
     }
@@ -151,10 +158,11 @@ public class ElasticAdapter {
 
         IndexResponse indexResponse = client.prepareIndex(index, "article")
                 .setPipeline("attachment")
-                .setId(file.getName())
+                .setId(DigestUtils.md5Hex(file.getName()))
                 .setSource(jsonBuilder()
                         .startObject()
                         .field("data", fileContents)
+                        .field("filename", file.getName())
                         .field("inserted_at", new Date())
                         .field("path", path)
                         .endObject()
