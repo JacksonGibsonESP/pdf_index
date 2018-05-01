@@ -47,13 +47,17 @@ PUT crystal
         "analyzer" : {
           "crystal" : {
             "tokenizer" : "standard",
-            "filter" : ["standard", "lowercase", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer", "crystal_synonyms"]
+            "filter" : ["crystal_synonyms1", "lowercase", "crystal_synonyms2", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer"]
           }
         },
         "filter" : {
-          "crystal_synonyms" : {
+          "crystal_synonyms1" : {
             "type" : "synonym",
-            "synonyms_path" : "analysis/synonym.txt"
+            "synonyms_path" : "analysis/synonym1.txt"
+          },
+          "crystal_synonyms2" : {
+            "type" : "synonym",
+            "synonyms_path" : "analysis/synonym2.txt"
           },
           "english_stopwords": {
             "type": "stop",

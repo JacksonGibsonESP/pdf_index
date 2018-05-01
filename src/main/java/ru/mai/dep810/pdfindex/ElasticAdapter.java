@@ -20,8 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.Date;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -112,13 +110,15 @@ public class ElasticAdapter {
     }
 
     private XContentBuilder getSettings() throws Exception {
-        String []filters = {"standard", "lowercase", "crystal_synonyms", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer"};
+        String []filters = {"crystal_synonyms1", "lowercase", "crystal_synonyms2", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer"};
         return jsonBuilder()
                 .startObject()
                     .field("index.analysis.analyzer.crystal.tokenizer", "standard")
                     .field("index.analysis.analyzer.crystal.filter", filters)
-                    .field("index.analysis.filter.crystal_synonyms.type", "synonym")
-                    .field("index.analysis.filter.crystal_synonyms.synonyms_path", "analysis/synonym.txt")
+                    .field("index.analysis.filter.crystal_synonyms1.type", "synonym")
+                    .field("index.analysis.filter.crystal_synonyms1.synonyms_path", "analysis/synonym1.txt")
+                    .field("index.analysis.filter.crystal_synonyms2.type", "synonym")
+                    .field("index.analysis.filter.crystal_synonyms2.synonyms_path", "analysis/synonym2.txt")
                     .field("index.analysis.filter.english_stopwords.type", "stop")
                     .field("index.analysis.filter.english_stopwords.stopwords", "_english_")
                     .field("index.analysis.filter.russian_stopwords.type", "stop")
