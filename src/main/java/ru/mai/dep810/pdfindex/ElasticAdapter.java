@@ -113,7 +113,7 @@ public class ElasticAdapter {
         String []filters = {"crystal_synonyms1", "lowercase", "crystal_synonyms2", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer"};
         return jsonBuilder()
                 .startObject()
-                    .field("index.analysis.analyzer.crystal.tokenizer", "standard")
+                    .field("index.analysis.analyzer.crystal.tokenizer", "whitespace")
                     .field("index.analysis.analyzer.crystal.filter", filters)
                     .field("index.analysis.filter.crystal_synonyms1.type", "synonym")
                     .field("index.analysis.filter.crystal_synonyms1.synonyms_path", "analysis/synonym1.txt")
@@ -139,6 +139,7 @@ public class ElasticAdapter {
                                 .startObject()
                                     .field("type", "text")
                                     .field("analyzer", "crystal")
+                                    .field("search_analyzer", "crystal")
                                 .endObject()
                         .endObject()
                 .endObject();
