@@ -47,7 +47,7 @@ PUT crystal
         "analyzer" : {
           "crystal" : {
             "tokenizer" : "whitespace",
-            "filter" : ["crystal_synonyms1", "lowercase", "crystal_synonyms2", "english_stopwords", "russian_stopwords", "english_stemmer",  "russian_stemmer"]
+            "filter" : ["crystal_synonyms1", "lowercase", "english_stemmer",  "russian_stemmer", "crystal_synonyms2", "english_stopwords", "russian_stopwords"]
           }
         },
         "filter" : {
